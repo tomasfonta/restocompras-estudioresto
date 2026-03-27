@@ -40,14 +40,12 @@ La aplicación corre íntegramente en el navegador del cliente (frontend) y se c
 | UC-02 | Cliente | Navega por categorías del menú | Visualiza los ítems filtrados por categoría con nombre, descripción, precio e imagen |
 | UC-03 | Cliente | Agrega ítems al pedido | El ítem se suma al carrito con contador visible en la barra de navegación |
 | UC-04 | Cliente | Modifica la cantidad de un ítem | Puede incrementar o decrementar la cantidad desde la tarjeta del menú o desde el carrito |
-| UC-05 | Cliente | Abre el detalle de un ítem | Ve una vista expandida con imagen, nombre, descripción y controles de cantidad |
+| UC-05 | Cliente | Abre el detalle de un ítem | Ve una vista expandida, nombre, descripción y controles de cantidad |
 | UC-06 | Cliente | Agrega un comentario a un ítem | Puede escribir aclaraciones por ítem (ej: "sin tomate", "sin TACC") desde el carrito |
 | UC-07 | Cliente | Revisa su pedido | Ve el resumen agrupado por categoría, cantidades, comentarios y total en pesos |
 | UC-08 | Cliente | Envía el pedido a cocina | El pedido se transmite al backend con todos los ítems, cantidades, comentarios, mesa y restaurante |
 | UC-09 | Cliente | Llama al mozo | Se envía una notificación al backend identificando la mesa que requiere atención |
 | UC-10 | Cliente | Pide la cuenta | Selecciona el método de pago (efectivo o medios electrónicos) y la solicitud se envía al backend |
-| UC-11 | Cliente | Recibe confirmación de cada acción | Toast de éxito o error con duración de 3 segundos visible en pantalla |
-| UC-12 | Sistema | QR inválido o restaurante no encontrado | Se muestra pantalla de error descriptiva; la aplicación no se rompe |
 
 ---
 
@@ -57,23 +55,19 @@ La aplicación corre íntegramente en el navegador del cliente (frontend) y se c
 - ✅ Splash screen de bienvenida con nombre del restaurante y número de mesa
 - ✅ Navegación inferior (bottom nav) con iconos para: Inicio, Menú, Carrito, Llamar mozo, Pedir cuenta
 - ✅ Tabs de categorías con scroll horizontal
-- ✅ Tarjetas de menú con imagen opcional, nombre, descripción, precio y stepper de cantidad
-- ✅ Modal de detalle de ítem con imagen ampliada
+- ✅ Tarjetas de menú con nombre, descripción, precio y stepper de cantidad
+- ✅ Modal de detalle de ítem con información ampliada
 - ✅ Vista de carrito agrupada por categoría
 - ✅ Campo de comentario libre por ítem en el carrito
 - ✅ Barra de totales (cantidad total y precio total) en el carrito
 - ✅ Diálogo de confirmación antes de enviar el pedido
 - ✅ Diálogo de confirmación para llamar al mozo
 - ✅ Selector de método de pago al pedir la cuenta (efectivo / medios electrónicos)
-- ✅ Toasts de feedback (éxito / error) para todas las acciones
 - ✅ Indicadores de carga en el menú y en botones de acción
-- ✅ Pantalla de error para QR inválido
 
 ### Técnico
 - ✅ Diseño mobile-first, responsive
 - ✅ Identificación automática del restaurante y mesa desde la URL (parámetros QR)
-- ✅ Fallback a datos de demo cuando el backend no está disponible
-- ✅ Deploy automático en GitHub Pages via GitHub Actions
 - ✅ Soporte multi-restaurante (un mismo código base sirve a múltiples clientes)
 
 ---
@@ -93,12 +87,10 @@ Las siguientes funcionalidades están **fuera del alcance** de esta entrega. Su 
 | 🚫 Gestión de stock / disponibilidad | No hay control de ítems agotados ni cantidades disponibles |
 | 🚫 Traducciones / multilenguaje | La interfaz es únicamente en español |
 | 🚫 Modo offline completo | Se requiere conexión a internet para enviar pedidos al backend |
-| �� Imágenes de ítems | Las imágenes son opcionales y deben ser provistas por el restaurante vía su API |
 | 🚫 Backend / API | Este repositorio es exclusivamente el frontend; el backend es responsabilidad del cliente |
 | 🚫 CMS o editor de menú | El menú debe cargarse y mantenerse desde el backend del cliente |
 | 🚫 Analytics / reportes | No se registran métricas de uso ni ventas |
 | 🚫 Integración con sistemas de caja (POS) | No se conecta con ningún sistema de punto de venta existente |
-
 ---
 
 ## 5. Arquitectura técnica
@@ -107,7 +99,7 @@ Las siguientes funcionalidades están **fuera del alcance** de esta entrega. Su 
 ┌──────────────────────────────────────┐
 │         CLIENTE (navegador)          │
 │                                      │
-│  React 19 + Vite 8                   │
+│  React + Vite                        │
 │  CSS custom (mobile-first)           │
 │                                      │
 │  src/                                │
@@ -182,7 +174,6 @@ GET {apiUrl}/menu
 ```
 
 **Notas:**
-- `image` es **opcional**. Si no se envía, la tarjeta se muestra sin imagen.
 - `price` debe ser un **número** (sin símbolo de moneda).
 - El orden de categorías e ítems en el array determina el orden de visualización.
 - Si el endpoint falla, la app carga un **menú de demo** local (no se interrumpe el servicio).
@@ -407,9 +398,6 @@ const restaurants = {
   },
 };
 ```
-
-Cada cambio requiere un `git push` para que el deploy automático actualice producción.
-
 ---
 
 ## 11. Generación de códigos QR
@@ -439,10 +427,7 @@ Los QR se imprimen y ubican físicamente en cada mesa. No requieren ningún sist
 |------|---------|
 | ✅ Aplicación web frontend completa | Menú digital, carrito, envío de pedidos, llamada a mozo, solicitud de cuenta con método de pago |
 | ✅ Código fuente | Repositorio GitHub con historial completo de cambios |
-| ✅ Hosting en GitHub Pages | Sin costo de servidor, disponible 24/7 |
-| ✅ CI/CD automático | Cada push a `main` actualiza producción automáticamente |
 | ✅ Soporte multi-restaurante | El mismo deployment sirve a múltiples restaurantes via `restaurantId` |
-| ✅ Modo demo | La app funciona visualmente sin backend (útil para presentaciones y pruebas) |
 | ✅ Documentación técnica | Especificación completa de los 4 endpoints y formato de datos |
 
 ### Lo que NO incluye esta entrega
@@ -453,21 +438,8 @@ Los QR se imprimen y ubican físicamente en cada mesa. No requieren ningún sist
 | 🚫 Base de datos | El almacenamiento de pedidos y menú es responsabilidad del backend del cliente |
 | 🚫 Panel de administración | Sin interfaz para gestión de menú, mesas ni pedidos |
 | 🚫 Notificaciones al staff | La app emite la señal; cómo notificar al personal es responsabilidad del backend |
-| 🚫 Dominio personalizado | GitHub Pages usa el dominio `tomasfonta.github.io`; un dominio propio requiere configuración adicional |
 | 🚫 Diseño personalizado adicional | El diseño actual puede modificarse bajo un acuerdo de mantenimiento separado |
 | 🚫 Soporte post-entrega | Correcciones de bugs y nuevas funcionalidades se presupuestan por separado |
-
-### Condiciones de funcionamiento en producción
-
-Para que la aplicación opere con datos reales, el cliente debe proveer:
-
-1. **Backend propio** con los 4 endpoints descritos en la [sección 6](#6-integración-con-el-backend)
-2. **CORS habilitado** en el backend para `https://tomasfonta.github.io`
-3. **URL de API** para configurar en `src/config/restaurants.js`
-4. **Datos del menú** expuestos por `GET /menu` en el formato especificado
-5. **Códigos QR impresos** para cada mesa con el formato de URL de la [sección 11](#11-generación-de-códigos-qr)
-
-> Sin estos requisitos, la aplicación operará con datos de demo locales y **no transmitirá pedidos reales**.
 
 ---
 
