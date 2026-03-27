@@ -1,10 +1,12 @@
-export default function Header({ restaurantName, tableNumber }) {
+import { memo } from 'react';
+
+export default memo(function Header({ restaurantName, tableNumber }) {
   return (
     <header className="app-header">
-      <div className="header-title">{restaurantName || 'Restaurante'}</div>
-      {tableNumber && (
-        <div className="header-table">Mesa {tableNumber}</div>
-      )}
+      <div className="header-top">
+        <p className="header-restaurant">{restaurantName}</p>
+        {tableNumber && <span className="header-table">Mesa {tableNumber}</span>}
+      </div>
     </header>
   );
-}
+});

@@ -1,19 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Header from './components/Header.jsx';
 import CategoryTabs from './components/CategoryTabs.jsx';
 import MenuItem from './components/MenuItem.jsx';
+import ItemDetail from './components/ItemDetail.jsx';
 import Cart from './components/Cart.jsx';
-import TableActions from './components/TableActions.jsx';
+import BottomNav from './components/BottomNav.jsx';
 import Toast from './components/Toast.jsx';
-import { getMenu, placeOrder, callWaiter, requestBill } from './services/restaurantService.js';
+import ConfirmDialog from './components/ConfirmDialog.jsx';
+import { useMenu } from './hooks/useMenu.js';
+import { useCart } from './hooks/useCart.js';
+import { useActions } from './hooks/useActions.js';
 import restaurants from './config/restaurants.js';
 
-// ─── Read URL params ──────────────────────────────────────────────────────────
-const params = new URLSearchParams(window.location.search);
-const RESTAURANT_ID = params.get('restaurantId') || '';
-const TABLE_NUMBER = params.get('table') || '1';
+// ─── URL params (fallback to dev values) ─────────────────────────────────────
+const params        = new URLSearchParams(window.location.search);
+const RESTAURANT_ID = params.get('restaurantId') || 'estudioresto';
+const TABLE_NUMBER  = params.get('table') || '1';
 
-// ─── Views ────────────────────────────────────────────────────────────────────
+const VIEW_HOME = 'home';
 const VIEW_MENU = 'menu';
 const VIEW_CART = 'cart';
 
@@ -22,124 +26,50 @@ const INVALID_QR = !RESTAURANT_ID || !restaurants[RESTAURANT_ID];
 export default function App() {
   const restaurantName = !INVALID_QR ? restaurants[RESTAURANT_ID].name : '';
 
-  // Menu state
-  const [menuCategories, setMenuCategories] = useState([]);
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [loadingMenu, setLoadingMenu] = useState(!INVALID_QR);
-  const [menuError, setMenuError] = useState(null);
+  const [view, setView]                 = useState(VIEW_HOME);
+  const [selectedItem, setSelectedItem] = useState(null);
 
-  // Cart state
-  const [cartItems, setCartItems] = useState([]);
-  const [view, setView] = useState(VIEW_MENU);
+  const {
+    categoryNames,
+    activeCategory,
+    setActiveCategory,
+    activeItems,
+    itemCategoryMap,
+    loading: loadingMenu,
+    error: menuError,
+  } = useMenu(INVALID_QR ? null : RESTAURANT_ID);
 
-  // Actions state
-  const [submitting, setSubmitting] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [toast, setToast] = useState({ message: '', type: 'info' });
+  const {
+    cartItems,
+    addItem,
+    removeItem,
+    updateComment,
+    clearCart,
+    getQuantity,
+    totalItems,
+  } = useCart(itemCategoryMap);
 
-  // ─── Load menu ──────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (INVALID_QR) return;
-    setLoadingMenu(true);
-    getMenu(RESTAURANT_ID)
-      .then((data) => {
-        setMenuCategories(data);
-        if (data.length > 0) setActiveCategory(data[0].category);
-        setLoadingMenu(false);
-      })
-      .catch(() => {
-        setMenuError('No se pudo cargar el menú. Intentá de nuevo.');
-        setLoadingMenu(false);
-      });
-  }, []);
+  const goToMenu = useCallback(() => setView(VIEW_MENU), []);
 
-  // ─── Toast helper ───────────────────────────────────────────────────────────
-  const showToast = useCallback((message, type = 'info') => {
-    setToast({ message, type });
-    setTimeout(() => setToast({ message: '', type: 'info' }), 3000);
-  }, []);
+  const {
+    submitting,
+    actionLoading,
+    toast,
+    dialog,
+    closeDialog,
+    handlePlaceOrder,
+    handleCallWaiter,
+    handleRequestBill,
+  } = useActions(RESTAURANT_ID, TABLE_NUMBER, clearCart, goToMenu);
 
-  // ─── Cart helpers ────────────────────────────────────────────────────────────
-  function addItem(item) {
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prev, { ...item, quantity: 1, comment: '' }];
-    });
-  }
+  const onPlaceOrder = useCallback(
+    () => handlePlaceOrder(cartItems),
+    [handlePlaceOrder, cartItems]
+  );
 
-  function removeItem(item) {
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (!existing) return prev;
-      if (existing.quantity === 1) return prev.filter((i) => i.id !== item.id);
-      return prev.map((i) =>
-        i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i
-      );
-    });
-  }
+  const closeItem = useCallback(() => setSelectedItem(null), []);
 
-  function updateComment(itemId, comment) {
-    setCartItems((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, comment } : i))
-    );
-  }
-
-  function getQuantity(itemId) {
-    return cartItems.find((i) => i.id === itemId)?.quantity || 0;
-  }
-
-  const totalItems = cartItems.reduce((sum, i) => sum + i.quantity, 0);
-
-  // ─── Actions ─────────────────────────────────────────────────────────────────
-  async function handlePlaceOrder() {
-    if (cartItems.length === 0) return;
-    setSubmitting(true);
-    try {
-      const result = await placeOrder(RESTAURANT_ID, TABLE_NUMBER, cartItems);
-      if (result.success) {
-        setCartItems([]);
-        setView(VIEW_MENU);
-        showToast(`✅ Pedido enviado (${result.orderId})`, 'success');
-      } else {
-        showToast('❌ Error al enviar el pedido. Intentá de nuevo.', 'error');
-      }
-    } catch {
-      showToast('❌ Error al enviar el pedido. Intentá de nuevo.', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleCallWaiter() {
-    setActionLoading(true);
-    try {
-      await callWaiter(RESTAURANT_ID, TABLE_NUMBER);
-      showToast('🛎 El mozo está en camino', 'success');
-    } catch {
-      showToast('❌ No se pudo llamar al mozo', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  async function handleRequestBill() {
-    setActionLoading(true);
-    try {
-      await requestBill(RESTAURANT_ID, TABLE_NUMBER);
-      showToast('🧾 La cuenta está en camino', 'success');
-    } catch {
-      showToast('❌ No se pudo pedir la cuenta', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  // ─── Invalid QR screen ───────────────────────────────────────────────────────
+  // ─── Invalid QR ──────────────────────────────────────────────────────────────
   if (INVALID_QR) {
     return (
       <div className="app app--error">
@@ -152,42 +82,43 @@ export default function App() {
     );
   }
 
-  // ─── Active category items ───────────────────────────────────────────────────
-  const activeItems =
-    menuCategories.find((c) => c.category === activeCategory)?.items || [];
+  // ─── Splash ───────────────────────────────────────────────────────────────────
+  if (view === VIEW_HOME) {
+    return (
+      <div className="app">
+        <div className="splash">
+          <div className="splash__overlay" />
+          <div className="splash__hero">
+            <h1 className="splash__name">{restaurantName}</h1>
+            <p className="splash__tagline">Mesa {TABLE_NUMBER} · Bienvenido</p>
+          </div>
+          <div className="splash__actions">
+            <button className="splash__cta" onClick={goToMenu}>
+              ¡Ver el menú!
+            </button>
+          </div>
+        </div>
+        <Toast message={toast.message} type={toast.type} />
+      </div>
+    );
+  }
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
+  // ─── Main app ────────────────────────────────────────────────────────────────
   return (
     <div className="app">
       <Header restaurantName={restaurantName} tableNumber={TABLE_NUMBER} />
 
       <Toast message={toast.message} type={toast.type} />
 
-      {/* View tabs */}
-      <div className="view-tabs">
-        <button
-          className={`view-tab${view === VIEW_MENU ? ' view-tab--active' : ''}`}
-          onClick={() => setView(VIEW_MENU)}
-        >
-          Menú
-        </button>
-        <button
-          className={`view-tab${view === VIEW_CART ? ' view-tab--active' : ''}`}
-          onClick={() => setView(VIEW_CART)}
-        >
-          Mi pedido{totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
-        </button>
-      </div>
-
       <main className="main-content">
         {view === VIEW_MENU && (
           <>
             {loadingMenu && <div className="loading">Cargando menú…</div>}
-            {menuError && <div className="error-msg">{menuError}</div>}
+            {menuError   && <div className="error-msg">{menuError}</div>}
             {!loadingMenu && !menuError && (
               <>
                 <CategoryTabs
-                  categories={menuCategories.map((c) => c.category)}
+                  categories={categoryNames}
                   active={activeCategory}
                   onSelect={setActiveCategory}
                 />
@@ -199,6 +130,7 @@ export default function App() {
                       quantity={getQuantity(item.id)}
                       onAdd={addItem}
                       onRemove={removeItem}
+                      onSelect={setSelectedItem}
                     />
                   ))}
                 </div>
@@ -213,17 +145,41 @@ export default function App() {
             onUpdateComment={updateComment}
             onRemove={removeItem}
             onAdd={addItem}
-            onPlaceOrder={handlePlaceOrder}
+            onPlaceOrder={onPlaceOrder}
             isSubmitting={submitting}
           />
         )}
       </main>
 
-      <TableActions
+      <BottomNav
+        view={view}
+        onHome={() => setView(VIEW_HOME)}
+        onMenu={() => setView(VIEW_MENU)}
+        onCart={() => setView(VIEW_CART)}
         onCallWaiter={handleCallWaiter}
         onRequestBill={handleRequestBill}
-        loading={actionLoading}
+        cartCount={totalItems}
+        actionLoading={actionLoading}
       />
+
+      {selectedItem && (
+        <ItemDetail
+          item={selectedItem}
+          quantity={getQuantity(selectedItem.id)}
+          onAdd={addItem}
+          onRemove={removeItem}
+          onClose={closeItem}
+        />
+      )}
+
+      {dialog && (
+        <ConfirmDialog
+          title={dialog.title}
+          message={dialog.message}
+          actions={dialog.actions}
+          onClose={closeDialog}
+        />
+      )}
     </div>
   );
 }
