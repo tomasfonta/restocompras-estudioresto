@@ -1,4 +1,4 @@
-meta {
+info:
   name: 3 - Orders
   type: folder
-}
+  seq: 3

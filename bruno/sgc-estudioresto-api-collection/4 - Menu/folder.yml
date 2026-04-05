@@ -1,4 +1,4 @@
-meta {
+info:
   name: 4 - Menu
   type: folder
-}
+  seq: 4

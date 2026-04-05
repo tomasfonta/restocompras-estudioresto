@@ -1,0 +1,40 @@
+info:
+  name: 4 - Refresh Token
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{base_url}}/token/refresh"
+  auth: inherit
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "refreshToken": "{{refresh_token}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          bru.setEnvVar("token", res.body.token);
+          bru.setEnvVar("refresh_token", res.body.refreshToken);
+        }
+    - type: tests
+      code: |-
+        test("Refresh returns 200", function() {
+          expect(res.status).to.equal(200);
+        });
+
+        test("Response contains new Token", function() {
+          expect(res.body).to.have.property("token");
+          expect(res.body.token).to.be.a("string").and.not.empty;
+        });
+
+settings:
+  encodeUrl: true

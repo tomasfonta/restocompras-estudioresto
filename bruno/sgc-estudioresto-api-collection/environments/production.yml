@@ -1,0 +1,24 @@
+name: production
+variables:
+  - name: base_url
+    value: https://resto.sgc.ar/api
+  - name: username
+    value: test@estudioresto.com
+  - name: password
+    value: 123@abc
+  - name: refresh_token
+    secret: true
+  - name: waiter_token
+    secret: true
+  - name: restaurant_id
+    value: ""
+  - name: table_id
+    value: MESA01
+  - name: order_id
+    value: ORD-TEST-001
+  - name: request_id
+    value: "1"
+  - name: waiter_pin
+    value: "1234"
+  - name: token
+    secret: true

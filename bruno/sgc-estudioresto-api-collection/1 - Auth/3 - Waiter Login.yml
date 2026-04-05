@@ -1,0 +1,43 @@
+info:
+  name: 3 - Waiter Login
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{base_url}}/waiterLogin"
+  auth: inherit
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "pin": "{{waiter_pin}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          bru.setEnvVar("waiter_token", res.body.waiterToken);
+        }
+    - type: tests
+      code: |-
+        test("Waiter Login returns 200", function() {
+          expect(res.status).to.equal(200);
+        });
+
+        test("Response contains WaiterToken", function() {
+          expect(res.body).to.have.property("waiterToken");
+          expect(res.body.waiterToken).to.be.a("string").and.not.empty;
+        });
+
+        test("Response contains WaiterId", function() {
+          expect(res.body).to.have.property("waiterId");
+        });
+
+settings:
+  encodeUrl: true

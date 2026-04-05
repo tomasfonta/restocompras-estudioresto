@@ -1,0 +1,58 @@
+info:
+  name: 2 - Replace Menu
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: "{{base_url}}/restaurantRequest/menu/{{restaurant_id}}"
+  auth: inherit
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      [
+        {
+          "productId": "P001",
+          "name": "Milanesa Napolitana",
+          "description": "Milanesa con jamón, morrones y queso",
+          "price": 2500.00,
+          "category": "Platos",
+          "active": true,
+          "commandPrintChannel": "COCINA",
+          "menuOptionGroups": [
+            {
+              "name": "Cocción",
+              "isRequired": true,
+              "defaultQuantity": 1,
+              "maxQuantityPerOption": 1,
+              "menuOptions": [
+                { "name": "A punto", "price": 0, "maxQuantity": 1, "optionProductId": "OPT001" },
+                { "name": "Bien cocida", "price": 0, "maxQuantity": 1, "optionProductId": "OPT002" }
+              ]
+            }
+          ]
+        },
+        {
+          "productId": "P002",
+          "name": "Coca Cola",
+          "description": "Coca Cola 500ml",
+          "price": 800.00,
+          "category": "Bebidas",
+          "active": true,
+          "commandPrintChannel": "BARRA"
+        }
+      ]
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Returns 204", function() {
+          expect(res.status).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true

@@ -1,0 +1,44 @@
+info:
+  name: 2 - Replace Waiters
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: "{{base_url}}/restaurantRequest/waiters/{{restaurant_id}}"
+  auth: inherit
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      [
+        {
+          "waiterId": "W01",
+          "name": "Juan Pérez",
+          "alias": "Juan",
+          "pin": "1234",
+          "active": true,
+          "serviceFeePercent": 10.0
+        },
+        {
+          "waiterId": "W02",
+          "name": "María García",
+          "alias": "María",
+          "pin": "5678",
+          "active": true,
+          "serviceFeePercent": 10.0
+        }
+      ]
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Returns 204", function() {
+          expect(res.status).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true
