@@ -1,0 +1,42 @@
+meta {
+  name: 3 - Waiter Login
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/waiterLogin
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "pin": "{{waiter_pin}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("waiter_token", res.body.waiterToken);
+  }
+}
+
+tests {
+  test("Waiter Login returns 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response contains WaiterToken", function() {
+    expect(res.body).to.have.property("waiterToken");
+    expect(res.body.waiterToken).to.be.a("string").and.not.empty;
+  });
+
+  test("Response contains WaiterId", function() {
+    expect(res.body).to.have.property("waiterId");
+  });
+}

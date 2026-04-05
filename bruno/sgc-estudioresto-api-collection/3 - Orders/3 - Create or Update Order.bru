@@ -1,0 +1,57 @@
+meta {
+  name: 3 - Create or Update Order
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/restaurantRequest/order
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "waiterToken": "{{waiter_token}}",
+    "orderId": "{{order_id}}",
+    "tableId": "{{table_id}}",
+    "products": [
+      {
+        "productId": "P001",
+        "productQuantity": 2,
+        "productName": "Milanesa",
+        "productComment": ""
+      },
+      {
+        "productId": "P002",
+        "productQuantity": 1,
+        "productName": "Coca Cola"
+      }
+    ]
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.orderId) {
+    bru.setEnvVar("order_id", res.body.orderId);
+  }
+}
+
+tests {
+  test("Returns 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response contains OrderId", function() {
+    expect(res.body).to.have.property("orderId");
+  });
+
+  test("Response contains Products", function() {
+    expect(res.body).to.have.property("products");
+    expect(res.body.products).to.be.an("array");
+  });
+}

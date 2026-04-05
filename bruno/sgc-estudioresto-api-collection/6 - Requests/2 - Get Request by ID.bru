@@ -1,0 +1,20 @@
+meta {
+  name: 2 - Get Request by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/restaurantRequest/{{request_id}}
+  auth: inherit
+}
+
+tests {
+  test("Returns 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response contains Id", function() {
+    expect(res.body).to.have.property("id");
+  });
+}

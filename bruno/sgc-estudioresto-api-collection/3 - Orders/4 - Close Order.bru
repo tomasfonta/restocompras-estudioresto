@@ -1,0 +1,29 @@
+meta {
+  name: 4 - Close Order
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/restaurantRequest/order/close
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "waiterToken": "{{waiter_token}}",
+    "orderId": "{{order_id}}",
+    "tableId": "{{table_id}}"
+  }
+}
+
+tests {
+  test("Returns 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}

@@ -1,0 +1,25 @@
+meta {
+  name: 2 - Get Order by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/restaurantRequest/orders/{{order_id}}
+  auth: inherit
+}
+
+tests {
+  test("Returns 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response contains OrderId", function() {
+    expect(res.body).to.have.property("orderId");
+  });
+
+  test("Response contains Products array", function() {
+    expect(res.body).to.have.property("products");
+    expect(res.body.products).to.be.an("array");
+  });
+}

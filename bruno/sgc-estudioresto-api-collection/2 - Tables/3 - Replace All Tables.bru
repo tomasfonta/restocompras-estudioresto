@@ -1,0 +1,38 @@
+meta {
+  name: 3 - Replace All Tables
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{base_url}}/restaurantRequest/tables/{{restaurant_id}}
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  [
+    {
+      "tableId": "MESA01",
+      "tableLocation": "Salón",
+      "tableType": "Standard",
+      "active": true
+    },
+    {
+      "tableId": "MESA02",
+      "tableLocation": "Terraza",
+      "tableType": "Standard",
+      "active": true
+    }
+  ]
+}
+
+tests {
+  test("Returns 204", function() {
+    expect(res.status).to.equal(204);
+  });
+}

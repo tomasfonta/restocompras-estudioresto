@@ -1,0 +1,28 @@
+meta {
+  name: 4 - Send Message
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/restaurantRequest/message
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "waiterToken": "{{waiter_token}}",
+    "waiter": "Juan"
+  }
+}
+
+tests {
+  test("Returns 201", function() {
+    expect(res.status).to.equal(201);
+  });
+}
