@@ -1,0 +1,20 @@
+info:
+  name: 6 - Delete Request (Admin)
+  type: http
+  seq: 6
+
+http:
+  method: DELETE
+  url: "{{base_url}}/restaurantRequest/{{request_id}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Returns 204", function() {
+          expect(res.status).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true

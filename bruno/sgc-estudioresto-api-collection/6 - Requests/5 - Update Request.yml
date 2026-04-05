@@ -1,0 +1,35 @@
+info:
+  name: 5 - Update Request
+  type: http
+  seq: 5
+
+http:
+  method: PUT
+  url: "{{base_url}}/restaurantRequest/{{request_id}}"
+  auth: inherit
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "id": "{{request_id}}",
+        "restaurantId": "{{restaurant_id}}",
+        "restaurantTerminalId": "",
+        "requestType": "PRINT_COMMAND",
+        "requestJSON": "{}",
+        "requestOrderId": "",
+        "requestWaiter": ""
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Returns 204", function() {
+          expect(res.status).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true

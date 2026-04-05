@@ -1,0 +1,42 @@
+info:
+  name: 2 - Login Alias
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{base_url}}/login"
+  auth: none
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "userName": "{{username}}",
+        "password": "{{password}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          bru.setEnvVar("token", res.body.token);
+          bru.setEnvVar("refresh_token", res.body.refreshToken);
+          bru.setEnvVar("restaurant_id", res.body.userRestaurantId);
+        }
+    - type: tests
+      code: |-
+        test("Login Alias returns 200", function() {
+          expect(res.status).to.equal(200);
+        });
+
+        test("Response contains Token", function() {
+          expect(res.body).to.have.property("token");
+          expect(res.body.token).to.be.a("string").and.not.empty;
+        });
+
+settings:
+  encodeUrl: true

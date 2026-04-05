@@ -1,0 +1,40 @@
+info:
+  name: 3 - Replace All Tables
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{base_url}}/restaurantRequest/tables/{{restaurant_id}}"
+  auth: inherit
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      [
+        {
+          "tableId": "MESA01",
+          "tableLocation": "Salón",
+          "tableType": "Standard",
+          "active": true
+        },
+        {
+          "tableId": "MESA02",
+          "tableLocation": "Terraza",
+          "tableType": "Standard",
+          "active": true
+        }
+      ]
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Returns 204", function() {
+          expect(res.status).to.equal(204);
+        });
+
+settings:
+  encodeUrl: true

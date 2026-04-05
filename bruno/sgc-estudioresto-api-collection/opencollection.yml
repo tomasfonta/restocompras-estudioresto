@@ -1,0 +1,14 @@
+opencollection: "1.0.0"
+info:
+  name: SGC EstudioResto API Collection
+
+request:
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git
